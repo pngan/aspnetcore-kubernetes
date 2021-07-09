@@ -6,6 +6,7 @@ namespace aspnetcore_kubernetes.Controllers
 {
     [ApiController]
     [Route("/")]
+    [Produces("application/json")]
     public class LoadController : Controller
     {
         [HttpGet]
@@ -17,10 +18,10 @@ namespace aspnetcore_kubernetes.Controllers
 
         [HttpGet]
         [Route("info")]
-        public string Info()
+        public IActionResult Info()
         {
             var model = new HomePageViewModel();
-            return JsonSerializer.Serialize(model);
+            return Ok(JsonSerializer.Serialize(model));
         }
     }
 }
