@@ -3,8 +3,17 @@
 }
 
 <div class="line-item">
-    <h1 class="display-4">Normal Page</h1>
+    <h1 class="display-4" id="title">Load Generator</h1>
     <br>Application: @Model.Application (@Model.Version)</br>
     <br>Host Name: @Model.HostName</br>
     <br>IP Address: @Model.IpAddress</br>
+    <br>
+    <button id="runload" type="button" onclick="
+        document.getElementById('title').innerHTML = 'Processing...';
+        document.body.style.backgroundColor = 'plum';
+        window.location = '@Url.Action("RunLoad", "Load")'"
+            class="btn btn-primary">
+        Run Load
+    </button>
+    </br>
 </div>

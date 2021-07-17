@@ -1,6 +1,7 @@
 ﻿using aspnetcore_kubernetes.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using System.Threading;
 
 namespace aspnetcore_kubernetes.Controllers
 {
@@ -10,10 +11,11 @@ namespace aspnetcore_kubernetes.Controllers
     public class LoadController : Controller
     {
         [HttpGet]
-        [Route("ping")]
-        public string Ping()
+        [Route("runload")]
+        public IActionResult RunLoad()
         {
-            return "Pong";
+            Thread.SpinWait(200000000);
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
