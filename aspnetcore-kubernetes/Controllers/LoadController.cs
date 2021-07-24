@@ -1,7 +1,11 @@
 ﻿using aspnetcore_kubernetes.Models;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace aspnetcore_kubernetes.Controllers
 {
@@ -12,9 +16,9 @@ namespace aspnetcore_kubernetes.Controllers
     {
         [HttpGet]
         [Route("runload")]
-        public IActionResult RunLoad()
+        public async Task<IActionResult> RunLoad()
         {
-            Thread.SpinWait(200000000);
+            await GenerateLoadAsync(10, 30);
             return RedirectToAction("Index", "Home");
         }
 
@@ -24,6 +28,35 @@ namespace aspnetcore_kubernetes.Controllers
         {
             var model = new HomePageViewModel();
             return Ok(JsonSerializer.Serialize(model));
+        }
+
+        private async Task GenerateLoadAsync(int intervalInSeconds, int percentageLoad = 100)
+        {
+            Console.WriteLine("Generating Load...");
+            var allTasks = new List<Task>();
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(intervalInSeconds));
+            for (int i = 0; i < Environment.ProcessorCount; i++)
+            {
+                var task = Task.Run(() => LoadCpuAsync(cts.Token, percentageLoad));
+                allTasks.Add(task);
+            }
+
+            await Task.WhenAll(allTasks);
+        }
+
+        private async Task LoadCpuAsync(CancellationToken ct, int percentageLoad)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                LoadCpu(percentageLoad);
+                await Task.Delay(100 - percentageLoad);
+            }
+        }
+        private void LoadCpu(int millisecondsDuration)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+            while (timer.ElapsedMilliseconds < millisecondsDuration) ;
         }
     }
 }
