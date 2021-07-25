@@ -1,11 +1,10 @@
 ﻿using aspnetcore_kubernetes.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace aspnetcore_kubernetes.Controllers
 {
@@ -16,9 +15,9 @@ namespace aspnetcore_kubernetes.Controllers
     {
         [HttpGet]
         [Route("runload")]
-        public async Task<IActionResult> RunLoad()
+        public async Task<IActionResult> RunLoad(long n = 1000000)
         {
-            await GenerateLoadAsync(10, 30);
+            await GenerateLoadAsync(n);
             return RedirectToAction("Index", "Home");
         }
 
@@ -30,33 +29,26 @@ namespace aspnetcore_kubernetes.Controllers
             return Ok(JsonSerializer.Serialize(model));
         }
 
-        private async Task GenerateLoadAsync(int intervalInSeconds, int percentageLoad = 100)
+        private async Task GenerateLoadAsync(long numberIterations)
         {
             Console.WriteLine("Generating Load...");
             var allTasks = new List<Task>();
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(intervalInSeconds));
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
-                var task = Task.Run(() => LoadCpuAsync(cts.Token, percentageLoad));
+                var task = Task.Run(async () => await LoadCpuAsync(numberIterations));
                 allTasks.Add(task);
             }
 
             await Task.WhenAll(allTasks);
         }
 
-        private async Task LoadCpuAsync(CancellationToken ct, int percentageLoad)
+
+        private async Task LoadCpuAsync(long numberIterations)
         {
-            while (!ct.IsCancellationRequested)
+            while (numberIterations-- > 0)
             {
-                LoadCpu(percentageLoad);
-                await Task.Delay(100 - percentageLoad);
+                await Task.Yield();
             }
-        }
-        private void LoadCpu(int millisecondsDuration)
-        {
-            var timer = new Stopwatch();
-            timer.Start();
-            while (timer.ElapsedMilliseconds < millisecondsDuration) ;
         }
     }
 }
